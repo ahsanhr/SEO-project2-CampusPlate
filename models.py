@@ -1,3 +1,4 @@
+from datetime import datetime
 from app import db
 
 
@@ -6,6 +7,8 @@ class User(db.Model):
     username      = db.Column(db.String(40), unique=True, nullable=False)
     email         = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    user_token    = db.Column(db.String(64), unique=True)
 
 
 class Goal(db.Model):
