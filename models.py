@@ -33,10 +33,11 @@ class ProfileInput(db.Model):
 class FoodItem(db.Model):
     id           = db.Column(db.Integer, primary_key=True)
     name         = db.Column(db.String(200))
+    location     = db.Column(db.String(100))
     date         = db.Column(db.Date)
     time_of_day  = db.Column(db.String(10))
     station      = db.Column(db.String(100))
-    serving_size = db.Column(db.String(50))  # e.g. "1 cup", "4 oz", "1 serving"
+    serving_size = db.Column(db.String(50))
     calories     = db.Column(db.Float)
     protein_g    = db.Column(db.Float)
     carbs_g      = db.Column(db.Float)
