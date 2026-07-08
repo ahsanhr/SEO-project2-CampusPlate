@@ -6,12 +6,13 @@ import os
 
 from forms import RegistrationForm
 
+
 load_dotenv()
 # next 3 lines might be needed for when we actually deploy
 # base_dir = Path(__file__).resolve().parent
 # env_path = base_dir / '.env'
 # load_dotenv(dotenv_path=env_path)
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY") 
 
 app = Flask(__name__)
 proxied = FlaskBehindProxy(app)
@@ -35,6 +36,14 @@ app.register_blueprint(plate_bp)
 @app.route("/home")
 def home():
     return render_template('home.html', subtitle='Home Page', text='This is the home page')
+
+
+
+@app.route("/")
+@app.route("/home")
+def home():
+    return render_template('home.html', subtitle='Home Page', text='This is the home page')
+
 
 
 with app.app_context():
