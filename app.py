@@ -21,6 +21,20 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
+class User(db.Model):
+  id = db.Column(db.Integer, primary_key=True)
+  username = db.Column(db.String(20), unique=True, nullable=False)
+  email = db.Column(db.String(120), unique=True, nullable=False)
+  password = db.Column(db.String(60), nullable=False)
+  calories = db.Column(db.Integer, nullable=False)
+  protein = db.Column(db.Integer, nullable=False)
+  fats = db.Column(db.Integer, nullable=False)
+  carbs = db.Column(db.Integer, nullable=False)
+
+  def __repr__(self):
+    return f"User('{self.username}', '{self.email}')"
+
+
 from auth import auth_bp
 app.register_blueprint(auth_bp)
 
@@ -42,8 +56,36 @@ def home():
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', subtitle='Home Page', text='This is the home page')
+    return render_template('home.html')
 
+@app.route("/account")
+def account():
+    return render_template('account.html')
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, 
+            email=form.email.data, 
+            password=form.password.data, 
+            calories=form.calories.data,
+            protein=form.protein.data,
+            fats=form.fats.data,
+            carbs=form.carbs.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Account created for {form.username.data}!', 'success')
+        return redirect(url_for('account'))
+    return render_template('register.html', title='Register', form=form)
+
+@app.route("/build_a_plate")
+def build_a_plate():
+    return render_template('build_a_plate.html')
+
+@app.route("/previous_meals")
+def previous_meals():
+    return render_template('previous_meals.html')
 
 
 with app.app_context():
