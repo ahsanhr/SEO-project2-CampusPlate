@@ -20,6 +20,62 @@
           {{ form.confirm_password.label(class="form-control-label") }} {% if form.confirm_password.errors %} {{ form.confirm_password(class="form-control form-control-lg is-invalid") }}
           <div class="invalid-feedback"> {% for error in form.confirm_password.errors%} <span>{{error}}</span> {% endfor %} </div> {% else %} {{ form.confirm_password(class="form-control form-control-lg") }} {% endif %}
         </div>
+        <div class="form-group">
+          {{ form.calories.label(class="form-control-label") }}
+          {% if form.calories.errors %}
+            {{ form.calories(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.calories.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.calories(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          {{ form.protein.label(class="form-control-label") }}
+          {% if form.protein.errors %}
+            {{ form.protein(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.protein.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.protein(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          {{ form.fats.label(class="form-control-label") }}
+          {% if form.fats.errors %}
+            {{ form.fats(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.fats.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.fats(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          {{ form.carbs.label(class="form-control-label") }}
+          {% if form.carbs.errors %}
+            {{ form.carbs(class="form-control form-control-lg is-invalid") }}
+            <div class="invalid-feedback">
+              {% for error in form.carbs.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.carbs(class="form-control form-control-lg") }}
+          {% endif %}
+        </div>
+        
       </fieldset>
       <div class="form-group">
         {{ form.submit(class="btn btn-outline-info") }}
