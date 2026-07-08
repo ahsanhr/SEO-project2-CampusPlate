@@ -7,3 +7,134 @@
 #   - if the user hasn't set goals yet, returns a clear error before running the algorithm
 #   - the knapsack result is logged to the recommendations table
 #   - calling generate-plate without a JWT returns 401
+
+import pytest
+import datetime
+import json
+from app import app, db
+from models import Goal, FoodItem
+from werkzeug.security import generate_password_hash
+
+@pytest.fixture
+def client():
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    with app.app_context():
+        db.create_all()
+        yield app.test_client()
+        db.drop_all()
+
+
+def signup_and_token(client):
+    res = client.post('/api/auth/signup', json={
+        'username': 'kamsi', 'email': 'k@test.com', 'password': 'pass123'
+    })
+    data = res.get_json()
+    return data['token'], data['user_id']
+
+
+def seed_goal(user_id):
+    goal = Goal(user_id=user_id, calories=2000, protein_g=150, carbs_g=200, fat_g=67)
+    db.session.add(goal)
+    db.session.commit()
+
+
+DUMMY_MENU = [
+    # breakfast
+    {'time_of_day': 'breakfast', 'name': 'Scrambled Eggs',     'serving_size': '2 eggs',   'calories': 180, 'protein_g': 14, 'carbs_g': 2,  'fat_g': 12},
+    {'time_of_day': 'breakfast', 'name': 'Oatmeal',            'serving_size': '1 cup',    'calories': 160, 'protein_g': 6,  'carbs_g': 28, 'fat_g': 3},
+    {'time_of_day': 'breakfast', 'name': 'Greek Yogurt',       'serving_size': '6 oz',     'calories': 120, 'protein_g': 17, 'carbs_g': 8,  'fat_g': 0},
+    {'time_of_day': 'breakfast', 'name': 'Bacon',              'serving_size': '2 strips', 'calories': 90,  'protein_g': 6,  'carbs_g': 0,  'fat_g': 7},
+    {'time_of_day': 'breakfast', 'name': 'Whole Wheat Toast',  'serving_size': '2 slices', 'calories': 140, 'protein_g': 5,  'carbs_g': 26, 'fat_g': 2},
+    {'time_of_day': 'breakfast', 'name': 'Orange Juice',       'serving_size': '8 oz',     'calories': 110, 'protein_g': 2,  'carbs_g': 26, 'fat_g': 0},
+    {'time_of_day': 'breakfast', 'name': 'Banana',             'serving_size': '1 medium', 'calories': 105, 'protein_g': 1,  'carbs_g': 27, 'fat_g': 0},
+
+    # lunch
+    {'time_of_day': 'lunch', 'name': 'Grilled Chicken',        'serving_size': '4 oz',     'calories': 350, 'protein_g': 45, 'carbs_g': 10, 'fat_g': 8},
+    {'time_of_day': 'lunch', 'name': 'Brown Rice',             'serving_size': '1 cup',    'calories': 250, 'protein_g': 5,  'carbs_g': 52, 'fat_g': 2},
+    {'time_of_day': 'lunch', 'name': 'Caesar Salad',           'serving_size': '1 bowl',   'calories': 180, 'protein_g': 6,  'carbs_g': 12, 'fat_g': 14},
+    {'time_of_day': 'lunch', 'name': 'Mac and Cheese',         'serving_size': '1 cup',    'calories': 480, 'protein_g': 18, 'carbs_g': 60, 'fat_g': 20},
+    {'time_of_day': 'lunch', 'name': 'Black Beans',            'serving_size': '1/2 cup',  'calories': 200, 'protein_g': 12, 'carbs_g': 36, 'fat_g': 1},
+    {'time_of_day': 'lunch', 'name': 'Steamed Broccoli',       'serving_size': '1 cup',    'calories': 80,  'protein_g': 5,  'carbs_g': 14, 'fat_g': 1},
+    {'time_of_day': 'lunch', 'name': 'Turkey Meatballs',       'serving_size': '3 pcs',    'calories': 300, 'protein_g': 35, 'carbs_g': 8,  'fat_g': 12},
+    {'time_of_day': 'lunch', 'name': 'Pasta Marinara',         'serving_size': '1 cup',    'calories': 420, 'protein_g': 14, 'carbs_g': 72, 'fat_g': 8},
+
+    # dinner
+    {'time_of_day': 'dinner', 'name': 'Salmon Fillet',         'serving_size': '5 oz',     'calories': 350, 'protein_g': 40, 'carbs_g': 0,  'fat_g': 18},
+    {'time_of_day': 'dinner', 'name': 'Mashed Potatoes',       'serving_size': '1 cup',    'calories': 220, 'protein_g': 4,  'carbs_g': 38, 'fat_g': 8},
+    {'time_of_day': 'dinner', 'name': 'Roasted Vegetables',    'serving_size': '1 cup',    'calories': 100, 'protein_g': 3,  'carbs_g': 18, 'fat_g': 3},
+    {'time_of_day': 'dinner', 'name': 'Beef Stir Fry',         'serving_size': '1 cup',    'calories': 420, 'protein_g': 38, 'carbs_g': 22, 'fat_g': 18},
+    {'time_of_day': 'dinner', 'name': 'Steamed White Rice',    'serving_size': '1 cup',    'calories': 200, 'protein_g': 4,  'carbs_g': 44, 'fat_g': 0},
+    {'time_of_day': 'dinner', 'name': 'Garden Salad',          'serving_size': '1 bowl',   'calories': 80,  'protein_g': 2,  'carbs_g': 10, 'fat_g': 4},
+    {'time_of_day': 'dinner', 'name': 'Chicken Breast',        'serving_size': '5 oz',     'calories': 280, 'protein_g': 52, 'carbs_g': 0,  'fat_g': 6},
+]
+
+def seed_menu():
+    today = datetime.date.today()
+    for item in DUMMY_MENU:
+        db.session.add(FoodItem(date=today, **item))
+    db.session.commit()
+
+
+def test_generate_plate(client):
+    token, user_id = signup_and_token(client)
+    with app.app_context():
+        seed_goal(user_id)
+        seed_menu()
+
+    res = client.post('/api/v1/generate-plate',
+        json={'meal_type': 'lunch', 'max_items': 4, 'num_combos': 6},
+        headers={'Authorization': f'Bearer {token}'}
+    )
+    assert res.status_code == 200
+    data = res.get_json()
+    print(json.dumps(data, indent=2))
+
+    # response shape
+    assert 'meals' in data
+    assert 'meal_targets' in data
+    assert 'daily_targets' in data
+    assert len(data['meals']) == 6
+
+    for meal in data['meals']:
+        assert meal['totals']['calories'] <= data['meal_targets']['calories'] * 1.10
+
+    meal = data['meals'][0]
+    assert 'foods' in meal
+    assert 'totals' in meal
+    assert len(meal['foods']) <= 4
+
+    food = meal['foods'][0]
+    assert 'serving_size' in food
+    assert 'protein' in food
+    assert 'calories' in food
+
+
+def test_no_goal(client):
+    token, user_id = signup_and_token(client)
+    with app.app_context():
+        seed_menu()
+
+    res = client.post('/api/v1/generate-plate',
+        json={'meal_type': 'lunch'},
+        headers={'Authorization': f'Bearer {token}'}
+    )
+    assert res.status_code == 400
+
+
+def test_no_menu(client):
+    token, user_id = signup_and_token(client)
+    with app.app_context():
+        seed_goal(user_id)
+
+    res = client.post('/api/v1/generate-plate',
+        json={'meal_type': 'lunch'},
+        headers={'Authorization': f'Bearer {token}'}
+    )
+    assert res.status_code == 404
+
+
+def test_no_token(client):
+    res = client.post('/api/v1/generate-plate', json={'meal_type': 'lunch'})
+    assert res.status_code == 401
+
