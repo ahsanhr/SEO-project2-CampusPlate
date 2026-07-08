@@ -32,8 +32,30 @@ db = SQLAlchemy(app)
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', subtitle='Home Page', text='This is the home page')
+    return render_template('home.html')
 
+@app.route("/account")
+def about():
+    return render_template('account.html')
+
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Account created for {form.username.data}!', 'success')
+        return redirect(url_for('account'))
+    return render_template('register.html', title='Register', form=form)
+
+@app.route("/build_a_plate")
+def build_a_plate():
+    return render_template('build_a_plate.html')
+
+@app.route("/previous_meals")
+def previous_meals():
+    return render_template('previous_meals.html')
 
 
 with app.app_context():
