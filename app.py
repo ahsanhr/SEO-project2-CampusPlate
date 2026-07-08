@@ -45,14 +45,6 @@ app.register_blueprint(plate_bp)
 # from goals import goals_bp; app.register_blueprint(goals_bp)
 # from menu  import menu_bp;  app.register_blueprint(menu_bp)
 
-
-@app.route("/")
-@app.route("/home")
-def home():
-    return render_template('home.html', subtitle='Home Page', text='This is the home page')
-
-
-
 @app.route("/")
 @app.route("/home")
 def home():
