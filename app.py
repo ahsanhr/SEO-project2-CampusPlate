@@ -49,7 +49,7 @@ def home():
     return render_template('home.html')
 
 @app.route("/account")
-def about():
+def account():
     return render_template('account.html')
 
 @app.route("/register", methods=['GET', 'POST'])
