@@ -1,5 +1,7 @@
 import os
 import jwt
+import datetime
+from functools import wraps
 from flask import Blueprint, request, jsonify
 from app import db
 from models import User
@@ -10,10 +12,14 @@ secret = os.getenv('JWT_SECRET', 'dev-jwt-secret')
 
 
 def make_token(uid): # makes the jwt toekn for the user
-    return jwt.encode({'sub': uid}, secret, algorithm='HS256')
+    payload = {
+        'sub': uid,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    }
+    return jwt.encode(payload, secret, algorithm='HS256')
 
 
-def login_required(f): # decoreator to protect routes that need login
+def login_required(f): 
     def wrapper(*args, **kwargs):
         header = request.headers.get('Authorization', '')
         if not header.startswith('Bearer '):
@@ -23,6 +29,8 @@ def login_required(f): # decoreator to protect routes that need login
 
         try:
             payload = jwt.decode(token, secret, algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'error': 'token expired, please log in again'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'error': 'invalid token'}), 401
 
