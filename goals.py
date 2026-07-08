@@ -1,7 +1,7 @@
 # goals.py — goal input (direct + calculated), edit/update
 
 # two ways a user can set their goals:
-# 1. direct      — they enter calories + macros themselves
+# 1. direct      — they enter calories + macros themselves 
 # 2. calculated  — they enter age, height, weight, and a fitness goal
 #                  and we run the Mifflin-St Jeor equation to get their targets
 
