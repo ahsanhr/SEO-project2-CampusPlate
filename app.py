@@ -35,12 +35,22 @@ class User(db.Model):
     return f"User('{self.username}', '{self.email}')"
 
 
+from auth import auth_bp
+app.register_blueprint(auth_bp)
 
-# register blueprints once each route file is implemented
-# from auth  import auth_bp;  app.register_blueprint(auth_bp)
+from plate import plate_bp
+app.register_blueprint(plate_bp)
+
+# uncomment when file is done
 # from goals import goals_bp; app.register_blueprint(goals_bp)
 # from menu  import menu_bp;  app.register_blueprint(menu_bp)
-# from plate import plate_bp; app.register_blueprint(plate_bp)
+
+
+@app.route("/")
+@app.route("/home")
+def home():
+    return render_template('home.html', subtitle='Home Page', text='This is the home page')
+
 
 
 @app.route("/")
