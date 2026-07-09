@@ -4,34 +4,33 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CampusPlate</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="{{ proxy }}/static/css/styles.css">
 </head>
 <body>
-    <h1>CampusPlate</h1>
     <nav class="navbar">
+        <h1>CampusPlate</h1>
         <ul class="nav-links">
-            <!-- so ideally i dont have "proxy/5000/" in the beginning. i wonder how i change that? -->
-            <!-- future me: so i just deployed it so i guess i dont have to worry about adding that now.  -->
-            <p><a href="/">Home</a></p>
-            <p><a href="/sign_up">Sign Up</a></p>
-            <p><a href="/login">Login</a></p>
-            <p><a href="/account">Account</a></p>
-            <p><a href="/build_a_plate">Build a Plate</a></p>
-            <p><a href="/previous_meals">Previous Meals</a></p>
+            <p><a href="{{ proxy }}/">Home</a></p>
+            <p><a href="{{ proxy }}/sign_up">Sign Up</a></p>
+            <p><a href="{{ proxy }}/login">Login</a></p>
+            <p><a href="{{ proxy }}/account">Account</a></p>
+            <p><a href="{{ proxy }}/build_a_plate">Build a Plate</a></p>
+            <p><a href="{{ proxy }}/previous_meals">Previous Meals</a></p>
         </ul>
     </nav>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    
-    {% block content %}{% endblock %}
-    <script src="/static/js/app.js"></script>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+        <script src="{{ proxy }}/static/js/app.js"></script>
+    </div>
 </body>
 </html>
