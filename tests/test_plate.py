@@ -11,9 +11,9 @@
 import pytest
 import datetime
 import json
+from unittest.mock import patch, MagicMock
 from app import app, db
 from models import Goal, FoodItem
-from werkzeug.security import generate_password_hash
 
 @pytest.fixture
 def client():
@@ -137,4 +137,85 @@ def test_no_menu(client):
 def test_no_token(client):
     res = client.post('/api/v1/generate-plate', json={'meal_type': 'lunch'})
     assert res.status_code == 401
+
+
+# --- gemini tests (real api calls) ---
+
+def test_gemini_serving_tips_attached(client):
+    # real gemini call — serving_tip and gemini_pick should come back
+    token, user_id = signup_and_token(client)
+    with app.app_context():
+        seed_goal(user_id)
+        seed_menu()
+
+    with patch('plate._gemini_cache', {}):  # clear cache so we actually hit the api
+        res = client.post('/api/v1/generate-plate',
+            json={'meal_type': 'lunch', 'max_items': 3, 'num_combos': 4},
+            headers={'Authorization': f'Bearer {token}'}
+        )
+
+    assert res.status_code == 200
+    data = res.get_json()
+    print(json.dumps(data.get('gemini_pick'), indent=2))
+
+    assert data['gemini_pick'] is not None
+    assert 'pick' in data['gemini_pick']
+    assert 'reason' in data['gemini_pick']
+    assert isinstance(data['gemini_pick']['pick'], int)
+
+    # each food should have a serving_tip
+    for food in data['meals'][0]['foods']:
+        assert 'serving_tip' in food
+        assert food['serving_tip'] is not None
+
+
+def test_gemini_failure_still_returns_meals(client):
+    # if gemini throws for any reason, meals still come back fine
+    token, user_id = signup_and_token(client)
+    with app.app_context():
+        seed_goal(user_id)
+        seed_menu()
+
+    with patch('plate._gemini_cache', {}):
+        with patch('plate.gemini') as mock_client:
+            mock_client.models.generate_content.side_effect = Exception('api error')
+
+            res = client.post('/api/v1/generate-plate',
+                json={'meal_type': 'lunch', 'max_items': 3, 'num_combos': 4},
+                headers={'Authorization': f'Bearer {token}'}
+            )
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert 'meals' in data
+    assert len(data['meals']) == 4
+    assert data['gemini_pick'] is None
+
+
+def test_gemini_cached_on_second_call(client):
+    # second request same day should use cache, not call gemini again
+    token, user_id = signup_and_token(client)
+    with app.app_context():
+        seed_goal(user_id)
+        seed_menu()
+
+    with patch('plate._gemini_cache', {}):
+        with patch('plate.gemini') as mock_client:
+            mock_res = MagicMock()
+            mock_res.text = json.dumps({
+                "serving_tips": {"Option 1": ["tip"], "Option 2": ["tip"], "Option 3": ["tip"], "Option 4": ["tip"]},
+                "recommendation": {"pick": 1, "reason": "best option"}
+            })
+            mock_client.models.generate_content.return_value = mock_res
+
+            client.post('/api/v1/generate-plate',
+                json={'meal_type': 'lunch', 'num_combos': 4},
+                headers={'Authorization': f'Bearer {token}'}
+            )
+            client.post('/api/v1/generate-plate',
+                json={'meal_type': 'lunch', 'num_combos': 4},
+                headers={'Authorization': f'Bearer {token}'}
+            )
+
+            assert mock_client.models.generate_content.call_count == 1
 
