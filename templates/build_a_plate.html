@@ -1,13 +1,17 @@
 {% extends "layout.html" %}
 {% block content %}
-    <h1>Ready to build your plate?</h1>
-    <label for="meal-type">Which meal are we building?</label>
-    <select id="meal-type" class="form-control">
-        <option value="breakfast">Breakfast</option>
-        <option value="lunch" selected>Lunch</option>
-        <option value="dinner">Dinner</option>
-    </select>
-    <button id="build-plate-button">Build me a plate!</button>
-    <div id="meal-output-container"></div>
+    <div class="build-a-plate-header">
+        <h1>Ready to build your plate?</h1>
+        <label for="meal-type">Which meal are we building?</label>
+    </div>
+    <div class="meals-wrapper">
+        <select id="meal-type" class="form-control">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch" selected>Lunch</option>
+            <option value="dinner">Dinner</option>
+        </select>
+        <button id="build-plate-button">Build me a plate!</button>
+    </div>
+        <div id="meal-output-container" class="displayed-meals"></div>
     
 {% endblock content %}

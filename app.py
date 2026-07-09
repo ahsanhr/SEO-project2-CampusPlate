@@ -28,6 +28,10 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db.init_app(app)
 
+@app.context_processor
+def inject_proxy():
+    return dict(proxy='')
+
 from models import User
 
 from auth import auth_bp

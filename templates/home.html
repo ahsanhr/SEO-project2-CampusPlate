@@ -1,12 +1,29 @@
 {% extends "layout.html" %}
 {% block content %}
     <div class="home">
-        <h1>Welcome to CampusPlate!</h1>
-        <p>CampusPlate is a website where you'll be able to eat at your university dining halls without having to worry about staying on track on your fitness goals!</p>
-        <h2>Get started by <a href="/proxy/5000/sign_up">creating an account</a> with your macros.</h2>
-        <h2>Or, if you already have an account, <a href="/proxy/5000/login">login!</a></h2>
-        <p>Then, navigate to <a href="/proxy/5000/build_a_plate">Build a Plate </a>to see what to eat!</p>
-        <p>See previous meals in <a href="/proxy/5000/previous_meals">Previous Meals</a></p>
-        <p>Update your macros or fitness goal in your <a href="/proxy/5000/account">account</a> page!</p>
+        <header class="hero">
+            <h1>Welcome to CampusPlate</h1>
+            <p class="subtitle">Eat at your university dining halls without losing track of your fitness goals.</p>
+            
+            <a href="{{ proxy }}/sign_up" class="home-buttons">Create an Account</a>
+            <a href="{{ proxy }}/login" class="home-buttons">Log In</a>
+        </header>
+        
+          <section class="features-grid">
+            <a href="{{ proxy }}/build_a_plate" class="feature-card">
+              <h3>Build a Plate</h3>
+              <p>Discover exactly what to eat today to hit your macros.</p>
+            </a>
+        
+            <a href="{{ proxy }}/previous_meals" class="feature-card">
+              <h3>Previous Meals</h3>
+              <p>Review your dining history and track your progress.</p>
+            </a>
+        
+            <a href="{{ proxy }}/account" class="feature-card">
+              <h3>Manage Account</h3>
+              <p>Update your macros and adjust your fitness goals.</p>
+            </a>
+          </section>
     </div>
 {% endblock content %}
