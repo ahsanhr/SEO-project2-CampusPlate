@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Create an Account</h1>
+    <form id="signup-form">
+        <div id="form-group">
+            <label>Username </label>
+            <input type="text" id="username" required>
+        </div>
+        <div id="form-group">
+            <label>Email </label>
+            <input type="text" id="email" required>
+        </div>
+        <div id="form-group">
+            <label>Password </label>
+            <input type="text" id="password" required>
+        </div>
+        <button type="submit" id="sign-up-button">Sign Up</button>
+
+    </form>
+
+{% endblock content %}

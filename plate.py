@@ -118,13 +118,14 @@ def generate_plate(user_id):
     meal_type = body.get('meal_type', 'lunch')
     max_items = body.get('max_items', 6)
     num_combos = body.get('num_combos', NUM_COMBOS)
-
+    
     goal = Goal.query.filter_by(user_id=user_id).first()
     if not goal:
         return jsonify({'error': 'set your goals first'}), 400
 
     today = datetime.date.today()
-    items = FoodItem.query.filter_by(date=today, time_of_day=meal_type).all()
+    # items = FoodItem.query.filter_by(date=today, time_of_day=meal_type).all()
+    items = FoodItem.query.filter_by(time_of_day=meal_type).all()
     if not items:
         return jsonify({'error': f'no menu items found for {meal_type} today'}), 404
 
