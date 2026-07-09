@@ -14,7 +14,7 @@
 #   PUT  /api/goals             → update the active goal
 
 from flask import Blueprint, request, jsonify
-from app import db
+from extensions import db
 from models import Goal, ProfileInput
 from auth import login_required
 
