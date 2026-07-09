@@ -13,7 +13,7 @@ import cloudscraper
 from datetime import date
 from flask import Blueprint, jsonify
 
-from app import db
+from extensions import db
 from models import FoodItem
 from menu_parser import extract_nutrients
 
