@@ -1,33 +1,38 @@
 from flask import Flask, render_template, url_for, flash, redirect, request, abort
-from flask_sqlalchemy import SQLAlchemy
 from flask_behind_proxy import FlaskBehindProxy
 from dotenv import load_dotenv
 import os
-# from google import genai
-# from google.genai import types
-# from pydantic import BaseModel, Field
+from google import genai
+from google.genai import types
+from pydantic import BaseModel, Field
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 from forms import RegistrationForm
+from extensions import db
+
 
 load_dotenv()
 # next 3 lines might be needed for when we actually deploy
 # base_dir = Path(__file__).resolve().parent
 # env_path = base_dir / '.env'
 # load_dotenv(dotenv_path=env_path)
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY") 
-# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-# client = genai.Client(api_key=GEMINI_API_KEY)
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = Flask(__name__)
 proxied = FlaskBehindProxy(app)
 app.config['SECRET_KEY'] = FLASK_SECRET_KEY
 app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-db = SQLAlchemy(app)
+db.init_app(app)
+
 @app.context_processor
 def inject_proxy():
-    #change string to '' or /proxy/5000
     return dict(proxy='')
+
+from models import User
 
 from auth import auth_bp
 app.register_blueprint(auth_bp)
@@ -39,8 +44,9 @@ print(app.url_map)
 from goals import goals_bp
 app.register_blueprint(goals_bp)
 
-# uncomment when file is done
-# from menu import menu_bp; app.register_blueprint(menu_bp)
+from menu import menu_bp
+app.register_blueprint(menu_bp)
+
 
 @app.route("/")
 @app.route("/home")
@@ -81,9 +87,23 @@ def build_a_plate():
 def previous_meals():
     return render_template('previous_meals.html')
 
+def _daily_menu_fetch():
+    with app.app_context():
+        from menu import fetch_and_store_menu
+        fetch_and_store_menu()
+
 
 with app.app_context():
     db.create_all()
+    # populate today's menu on startup if not already loaded
+    from menu import fetch_and_store_menu
+    fetch_and_store_menu()
+
+# schedule a daily re-fetch at midnight so tomorrow's menu is ready on day change
+scheduler = BackgroundScheduler()
+scheduler.add_job(_daily_menu_fetch, 'cron', hour=0, minute=0)
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=True, host='0.0.0.0', port=3000)

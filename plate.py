@@ -18,7 +18,7 @@
 
 import datetime
 from flask import Blueprint, request, jsonify
-from app import db
+from extensions import db
 from models import Goal, FoodItem, Recommendation
 from auth import login_required
 

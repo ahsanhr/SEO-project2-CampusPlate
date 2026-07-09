@@ -3,7 +3,7 @@ import jwt
 import datetime
 from functools import wraps
 from flask import Blueprint, request, jsonify
-from app import db
+from extensions import db
 from models import User
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
