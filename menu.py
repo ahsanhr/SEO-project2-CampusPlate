@@ -4,7 +4,7 @@
 # needs cloudscraper because plain requests gets blocked by cloudflare
 #
 # flow:
-#   1. hit /sites/todays_menu to get all 19 uf locations
+#   1. iterate over LOCATIONS (hardcoded for now  (just Broward Hall)
 #   2. for each location, get its meal periods (breakfast / lunch / dinner)
 #   3. for each period, fetch the full menu with macros
 #   4. write every item to food_items table
@@ -21,6 +21,10 @@ menu_bp = Blueprint('menu', __name__, url_prefix='/api/menu')
 
 BASE_URL = 'https://apiv4.dineoncampus.com'
 UF_SITE_ID = '62312845a9f13a1011b4dd3a'
+
+LOCATIONS = [
+    {'id': '62b9907ab63f1e08defdd0bb', 'name': 'The Eatery @ Broward Hall'},
+]
 
 # map period names to the 3 time slots we use in the db
 PERIOD_MAP = {
@@ -93,22 +97,11 @@ def fetch_and_store_menu():
 
     scraper = _scraper()
     date_str = today.isoformat()
-
-    # step 1: get all locations for uf
-    r = scraper.get(
-        f'{BASE_URL}/sites/todays_menu',
-        params={'siteId': UF_SITE_ID},
-        timeout=20,
-    )
-    if r.status_code != 200:
-        return 0, f'api_error_{r.status_code}'
-
-    locations = r.json().get('locations', [])
     inserted = 0
 
-    for location in locations:
+    for location in LOCATIONS:
         loc_id = location['id']
-        loc_name = location.get('name', '')
+        loc_name = location['name']
 
         # step 2: get meal periods for this location
         periods = _fetch_periods(scraper, loc_id, date_str)

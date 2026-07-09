@@ -21,19 +21,7 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
-class User(db.Model):
-  id = db.Column(db.Integer, primary_key=True)
-  username = db.Column(db.String(20), unique=True, nullable=False)
-  email = db.Column(db.String(120), unique=True, nullable=False)
-  password = db.Column(db.String(60), nullable=False)
-  calories = db.Column(db.Integer, nullable=False)
-  protein = db.Column(db.Integer, nullable=False)
-  fats = db.Column(db.Integer, nullable=False)
-  carbs = db.Column(db.Integer, nullable=False)
-
-  def __repr__(self):
-    return f"User('{self.username}', '{self.email}')"
-
+from models import User
 
 from auth import auth_bp
 app.register_blueprint(auth_bp)
