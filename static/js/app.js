@@ -13,7 +13,7 @@ if (buildPlateButton) {
         if (!token) throw new Error("No token found");
 
         try {
-            const response = await fetch('/proxy/5000/api/v1/generate-plate', {
+            const response = await fetch('/api/v1/generate-plate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ if(signUpButton) {
         }
 
         try {
-            const response = await fetch('/proxy/5000/api/auth/signup', {
+            const response = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ if(loginButton){
         }
 
         try {
-            const response = await fetch('/proxy/5000/api/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ if(loginButton){
             }
             const data = await response.json()
             localStorage.setItem('jwt_token', data.token);
-            window.location.href = '/proxy/5000/account';
+            window.location.href = '/account';
         } catch (error) {
             console.error(`failed Sign Up: ${error}`);
         }
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const token = localStorage.getItem('jwt_token')
 
-        const auth = await fetch('/proxy/5000/api/auth/me', {
+        const auth = await fetch('/api/auth/me', {
             method: 'GET',
             headers: {"Authorization" : `Bearer ${token}`}
         });
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const goalsForm = document.getElementById('goals-form');
         if (goalsForm) {
             try {
-                goals = await fetch('/proxy/5000/api/goals', {
+                goals = await fetch('/api/goals', {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     let payload = {};
 
                     if (isDirect) {
-                        endpoint = '/proxy/5000/api/goals/direct';
+                        endpoint = '/api/goals/direct';
                         payload = {
                             calories: parseFloat(document.getElementById('goal-calories').value),
                             protein_g: parseFloat(document.getElementById('goal-protein').value),
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             carbs_g: parseFloat(document.getElementById('goal-carbs').value)
                         };
                     } else {
-                        endpoint = '/proxy/5000/api/goals/calculated';
+                        endpoint = '/api/goals/calculated';
                         payload = {
                             age: parseInt(document.getElementById('calc-age').value),
                             height: parseFloat(document.getElementById('calc-height').value),
