@@ -118,7 +118,7 @@ def generate_plate(user_id):
     meal_type = body.get('meal_type', 'lunch')
     max_items = body.get('max_items', 6)
     num_combos = body.get('num_combos', NUM_COMBOS)
-
+    
     goal = Goal.query.filter_by(user_id=user_id).first()
     if not goal:
         return jsonify({'error': 'set your goals first'}), 400

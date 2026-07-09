@@ -3,6 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_behind_proxy import FlaskBehindProxy
 from dotenv import load_dotenv
 import os
+from google import genai
+from google.genai import types
+from pydantic import BaseModel, Field
 
 from forms import RegistrationForm
 
@@ -11,7 +14,9 @@ load_dotenv()
 # base_dir = Path(__file__).resolve().parent
 # env_path = base_dir / '.env'
 # load_dotenv(dotenv_path=env_path)
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY") 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = Flask(__name__)
 proxied = FlaskBehindProxy(app)
@@ -32,16 +37,39 @@ app.register_blueprint(goals_bp)
 # uncomment when file is done
 # from menu import menu_bp; app.register_blueprint(menu_bp)
 
-
 @app.route("/")
 @app.route("/home")
 def home():
-    return render_template('home.html', subtitle='Home Page', text='This is the home page')
+    return render_template('home.html')
 
 @app.route("/account")
 def account():
     return render_template('account.html')
 
+# @app.route("/register", methods=['GET', 'POST'])
+# def register():
+#     # form = RegistrationForm()
+#     # if form.validate_on_submit():
+#     #     user = User(username=form.username.data, 
+#     #         email=form.email.data, 
+#     #         password=form.password.data, 
+#     #         calories=form.calories.data,
+#     #         protein=form.protein.data,
+#     #         fats=form.fats.data,
+#     #         carbs=form.carbs.data)
+#     #     db.session.add(user)
+#     #     db.session.commit()
+#     #     flash(f'Account created for {form.username.data}!', 'success')
+#     #     return redirect(url_for('account'))
+#     return render_template('register.html', title='Register')
+
+@app.route("/sign_up")
+def sign_in():
+    return render_template('sign_up.html')
+
+@app.route("/login")
+def login():
+    return render_template('login.html')
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     from models import User, Goal
@@ -73,6 +101,20 @@ def register():
 
 @app.route("/build_a_plate")
 def build_a_plate():
+
+    # prompt = f"""
+    # """
+
+    # response = client.models.generate_content(
+    #     model='gemini-2.5-flash',
+    #     contents=prompt,
+    #     config=types.GenerateContentConfig(
+    #         response_mime_type="application/json",
+    #         response_schema=DailyPlan,
+    #     ),
+    # )
+
+    # meal_plan = response.parsed
     return render_template('build_a_plate.html')
 
 @app.route("/previous_meals")
