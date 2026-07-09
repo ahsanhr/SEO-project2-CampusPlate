@@ -36,6 +36,7 @@ def login_required(f):
 
         kwargs['user_id'] = payload['sub']
         return f(*args, **kwargs)
+    wrapper.__name__ = f.__name__  # needed so flask doesnt complain about duplicate view names
     return wrapper
 
 

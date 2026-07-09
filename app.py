@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 
 from forms import RegistrationForm
 
-
 load_dotenv()
 # next 3 lines might be needed for when we actually deploy
 # base_dir = Path(__file__).resolve().parent
@@ -32,9 +31,11 @@ app.register_blueprint(auth_bp)
 from plate import plate_bp
 app.register_blueprint(plate_bp)
 
+from goals import goals_bp
+app.register_blueprint(goals_bp)
+
 # uncomment when file is done
-# from goals import goals_bp; app.register_blueprint(goals_bp)
-# from menu  import menu_bp;  app.register_blueprint(menu_bp)
+# from menu import menu_bp; app.register_blueprint(menu_bp)
 
 @app.route("/")
 @app.route("/home")
@@ -69,6 +70,34 @@ def sign_in():
 @app.route("/login")
 def login():
     return render_template('login.html')
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+    from models import User, Goal
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data
+        )
+        db.session.add(user)
+        db.session.flush()  # get user.id before committing
+
+        # save their macro goals too
+        goal = Goal(
+            user_id=user.id,
+            calories=form.calories.data,
+            protein_g=form.protein.data,
+            fat_g=form.fats.data,
+            carbs_g=form.carbs.data,
+            source='direct'
+        )
+        db.session.add(goal)
+        db.session.commit()
+
+        flash(f'Account created for {form.username.data}!', 'success')
+        return redirect(url_for('account'))
+    return render_template('register.html', title='Register', form=form)
 
 @app.route("/build_a_plate")
 def build_a_plate():
