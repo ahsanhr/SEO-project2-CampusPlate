@@ -124,7 +124,8 @@ def generate_plate(user_id):
         return jsonify({'error': 'set your goals first'}), 400
 
     today = datetime.date.today()
-    items = FoodItem.query.filter_by(date=today, time_of_day=meal_type).all()
+    # items = FoodItem.query.filter_by(date=today, time_of_day=meal_type).all()
+    items = FoodItem.query.filter_by(time_of_day=meal_type).all()
     if not items:
         return jsonify({'error': f'no menu items found for {meal_type} today'}), 404
 

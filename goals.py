@@ -56,7 +56,7 @@ def run_mifflin(age, height_cm, weight_lbs, sex, activity='moderate', goal='main
     return round(cals, 1), protein, carbs, fat
 
 
-def save_goal(user_id, cals, protein, carbs, fat, source):
+def save_goal(user_id, cals, protein, carbs, fat):
     # update if they already have one, otherwise make a new row
     existing = Goal.query.filter_by(user_id=user_id).first()
     if existing:
@@ -64,12 +64,11 @@ def save_goal(user_id, cals, protein, carbs, fat, source):
         existing.protein_g = protein
         existing.carbs_g = carbs
         existing.fat_g = fat
-        existing.source = source
         g = existing
     else:
         g = Goal(user_id=user_id, calories=cals,
                  protein_g=protein, carbs_g=carbs,
-                 fat_g=fat, source=source)
+                 fat_g=fat)
         db.session.add(g)
     db.session.commit()
     return g
@@ -87,7 +86,7 @@ def set_direct(user_id=None):
     if not all([cals, protein, carbs, fat]):
         return jsonify({'error': 'calories, protein_g, carbs_g, fat_g are all required'}), 400
 
-    g = save_goal(user_id, cals, protein, carbs, fat, source='direct')
+    g = save_goal(user_id, cals, protein, carbs, fat)
 
     return jsonify({
         'message': 'goals saved',
@@ -127,7 +126,7 @@ def set_calculated(user_id=None):
         p = ProfileInput(user_id=user_id, age=age, height=height, weight=weight, fitness_goal=goal)
         db.session.add(p)
 
-    g = save_goal(user_id, cals, protein, carbs, fat, source='calculated')
+    g = save_goal(user_id, cals, protein, carbs, fat)
 
     return jsonify({
         'message': 'goals calculated and saved',
@@ -169,4 +168,20 @@ def edit_goal(user_id=None):
             'carbs_g': g.carbs_g,
             'fat_g': g.fat_g,
         }
+    }), 200
+
+@goals_bp.route('', methods=['GET'])
+@login_required
+def get_current_goals(user_id=None):
+    g = Goal.query.filter_by(user_id=user_id).first()
+    
+    if not g:
+        return jsonify({'has_goals': False}), 200
+        
+    return jsonify({
+        'has_goals': True,
+        'calories': g.calories,
+        'protein_g': g.protein_g,
+        'carbs_g': g.carbs_g,
+        'fat_g': g.fat_g,
     }), 200

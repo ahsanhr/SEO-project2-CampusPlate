@@ -30,6 +30,7 @@ app.register_blueprint(auth_bp)
 
 from plate import plate_bp
 app.register_blueprint(plate_bp)
+print(app.url_map)
 
 from goals import goals_bp
 app.register_blueprint(goals_bp)
@@ -46,23 +47,6 @@ def home():
 def account():
     return render_template('account.html')
 
-# @app.route("/register", methods=['GET', 'POST'])
-# def register():
-#     # form = RegistrationForm()
-#     # if form.validate_on_submit():
-#     #     user = User(username=form.username.data, 
-#     #         email=form.email.data, 
-#     #         password=form.password.data, 
-#     #         calories=form.calories.data,
-#     #         protein=form.protein.data,
-#     #         fats=form.fats.data,
-#     #         carbs=form.carbs.data)
-#     #     db.session.add(user)
-#     #     db.session.commit()
-#     #     flash(f'Account created for {form.username.data}!', 'success')
-#     #     return redirect(url_for('account'))
-#     return render_template('register.html', title='Register')
-
 @app.route("/sign_up")
 def sign_in():
     return render_template('sign_up.html')
@@ -70,34 +54,6 @@ def sign_in():
 @app.route("/login")
 def login():
     return render_template('login.html')
-@app.route("/register", methods=['GET', 'POST'])
-def register():
-    from models import User, Goal
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            password=form.password.data
-        )
-        db.session.add(user)
-        db.session.flush()  # get user.id before committing
-
-        # save their macro goals too
-        goal = Goal(
-            user_id=user.id,
-            calories=form.calories.data,
-            protein_g=form.protein.data,
-            fat_g=form.fats.data,
-            carbs_g=form.carbs.data,
-            source='direct'
-        )
-        db.session.add(goal)
-        db.session.commit()
-
-        flash(f'Account created for {form.username.data}!', 'success')
-        return redirect(url_for('account'))
-    return render_template('register.html', title='Register', form=form)
 
 @app.route("/build_a_plate")
 def build_a_plate():
