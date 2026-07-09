@@ -6,13 +6,12 @@ import os
 
 from forms import RegistrationForm
 
-
 load_dotenv()
 # next 3 lines might be needed for when we actually deploy
 # base_dir = Path(__file__).resolve().parent
 # env_path = base_dir / '.env'
 # load_dotenv(dotenv_path=env_path)
-FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY") 
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
 
 app = Flask(__name__)
 proxied = FlaskBehindProxy(app)
@@ -21,29 +20,17 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db = SQLAlchemy(app)
 
-class User(db.Model):
-  id = db.Column(db.Integer, primary_key=True)
-  username = db.Column(db.String(20), unique=True, nullable=False)
-  email = db.Column(db.String(120), unique=True, nullable=False)
-  password = db.Column(db.String(60), nullable=False)
-  calories = db.Column(db.Integer, nullable=False)
-  protein = db.Column(db.Integer, nullable=False)
-  fats = db.Column(db.Integer, nullable=False)
-  carbs = db.Column(db.Integer, nullable=False)
-
-  def __repr__(self):
-    return f"User('{self.username}', '{self.email}')"
-
-
 from auth import auth_bp
 app.register_blueprint(auth_bp)
 
 from plate import plate_bp
 app.register_blueprint(plate_bp)
 
+from goals import goals_bp
+app.register_blueprint(goals_bp)
+
 # uncomment when file is done
-# from goals import goals_bp; app.register_blueprint(goals_bp)
-# from menu  import menu_bp;  app.register_blueprint(menu_bp)
+# from menu import menu_bp; app.register_blueprint(menu_bp)
 
 
 @app.route("/")
@@ -51,30 +38,35 @@ app.register_blueprint(plate_bp)
 def home():
     return render_template('home.html', subtitle='Home Page', text='This is the home page')
 
-
-
-@app.route("/")
-@app.route("/home")
-def home():
-    return render_template('home.html')
-
 @app.route("/account")
 def account():
     return render_template('account.html')
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    from models import User, Goal
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, 
-            email=form.email.data, 
-            password=form.password.data, 
-            calories=form.calories.data,
-            protein=form.protein.data,
-            fats=form.fats.data,
-            carbs=form.carbs.data)
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data
+        )
         db.session.add(user)
+        db.session.flush()  # get user.id before committing
+
+        # save their macro goals too
+        goal = Goal(
+            user_id=user.id,
+            calories=form.calories.data,
+            protein_g=form.protein.data,
+            fat_g=form.fats.data,
+            carbs_g=form.carbs.data,
+            source='direct'
+        )
+        db.session.add(goal)
         db.session.commit()
+
         flash(f'Account created for {form.username.data}!', 'success')
         return redirect(url_for('account'))
     return render_template('register.html', title='Register', form=form)
