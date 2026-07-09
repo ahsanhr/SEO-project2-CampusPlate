@@ -16,11 +16,20 @@
 #   returns: { combinations: [[...], [...], ...], targets: {...} }
 #   requires valid JWT
 
+import os
+import json
 import datetime
+from google import genai
 from flask import Blueprint, request, jsonify
 from extensions import db
 from models import Goal, FoodItem, Recommendation
 from auth import login_required
+
+gemini = genai.Client(api_key=os.getenv('GEMINI_API_KEY', ''))
+
+# cache gemini responses by (date, meal_type) so we only call once per meal per day
+# everyone sees the same menu so no point calling it again for each user
+_gemini_cache = {}
 
 plate_bp = Blueprint('plate', __name__, url_prefix='/api/v1')
 
@@ -88,6 +97,37 @@ def get_meals(items, targets, max_items, num_combos): # get multiple meal option
     return combos
 
 
+def ask_gemini(meals, targets, cache_key): # sends the combos to gemini and gets serving tips + a pick
+    if cache_key in _gemini_cache:
+        return _gemini_cache[cache_key]
+
+    lines = []
+    for i, meal in enumerate(meals):
+        foods = ', '.join(f"{f['name']} ({f['serving_size']})" for f in meal['foods'])
+        lines.append(f"Option {i+1}: {foods} | {meal['totals']['calories']}cal {meal['totals']['protein']}g protein")
+
+    prompt = (
+        f"Dining hall meal targets: {targets['calories']}cal, {targets['protein']}g protein, "
+        f"{targets['carbs']}g carbs, {targets['fat']}g fat.\n"
+        f"Options:\n" + "\n".join(lines) + "\n\n"
+        'Reply ONLY with JSON: {"serving_tips":{"Option 1":["<10 word tip per food>",...],...},'
+        '"recommendation":{"pick":<number>,"reason":"<one sentence>"}}'
+    )
+
+    try:
+        res = gemini.models.generate_content(model='gemini-2.0-flash', contents=prompt)
+        text = res.text.strip()
+        if text.startswith('```'):
+            text = text.split('```')[1]
+            if text.startswith('json'):
+                text = text[4:]
+        out = json.loads(text)
+        _gemini_cache[cache_key] = out  # cache it for the rest of the day
+        return out
+    except Exception:
+        return None  # gemini failed, still return the meals without tips
+
+
 def format_meal(combo): # turn the list of food objects into json
     foods = []
     for i in combo:
@@ -143,18 +183,32 @@ def generate_plate(user_id):
     db.session.add(rec)
     db.session.commit()
 
+    meals = [format_meal(c) for c in combos]
+    meal_targets = {
+        'calories': round(targets['calories'], 1),
+        'protein': round(targets['protein_g'], 1),
+        'carbs': round(targets['carbs_g'], 1),
+        'fat': round(targets['fat_g'], 1),
+    }
+
+    cache_key = (str(today), meal_type)
+    gemini_out = ask_gemini(meals, meal_targets, cache_key)
+
+    # attach serving tips to each meal if gemini came back ok
+    if gemini_out and 'serving_tips' in gemini_out:
+        for i, meal in enumerate(meals):
+            tips = gemini_out['serving_tips'].get(f'Option {i+1}', [])
+            for j, food in enumerate(meal['foods']):
+                food['serving_tip'] = tips[j] if j < len(tips) else None
+
     return jsonify({
-        'meals': [format_meal(c) for c in combos],
-        'meal_targets': {
-            'calories': round(targets['calories'], 1),
-            'protein':  round(targets['protein_g'], 1),
-            'carbs':    round(targets['carbs_g'], 1),
-            'fat':      round(targets['fat_g'], 1),
-        },
+        'meals': meals,
+        'meal_targets': meal_targets,
         'daily_targets': {
             'calories': goal.calories,
-            'protein':  goal.protein_g,
-            'carbs':    goal.carbs_g,
-            'fat':      goal.fat_g
-        }
+            'protein': goal.protein_g,
+            'carbs': goal.carbs_g,
+            'fat': goal.fat_g
+        },
+        'gemini_pick': gemini_out['recommendation'] if gemini_out else None
     }), 200
