@@ -4,24 +4,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CampusPlate</title>
-    <!-- <link rel="stylesheet" href="static/style.css" type="text/css"> -->
-    <style>
-        body {
-        font-family:Arial, Verdana, sans-serif;
-        }
-
-        h1 {
-        color:#cc5e10;
-        }
-
-        p {
-        color:#0d00fb;            
-        }
- 
-    </style>
+    <link rel="stylesheet" href="/proxy/5000/static/css/styles.css">
 </head>
 <body>
     <h1>CampusPlate</h1>
+    <nav class="navbar">
+        <ul class="nav-links">
+            <!-- so ideally i dont have "proxy/5000/" in the beginning. i wonder how i change that? -->
+            <!-- future me: so i just deployed it so i guess i dont have to worry about adding that now.  -->
+            <p><a href="/proxy/5000/">Home</a></p>
+            <!-- <li><a href="/proxy/5000/register">Register</a></li> -->
+            <p><a href="/proxy/5000/sign_up">Sign Up</a></p>
+            <p><a href="/proxy/5000/login">Login</a></p>
+            <p><a href="/proxy/5000/account">Account</a></p>
+            <p><a href="/proxy/5000/build_a_plate">Build a Plate</a></p>
+            <p><a href="/proxy/5000/previous_meals">Previous Meals</a></p>
+        </ul>
+    </nav>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -33,17 +33,6 @@
     {% endwith %}
     
     {% block content %}{% endblock %}
-    <ul>
-        <!-- so ideally i dont have "proxy/5000/" in the beginning. i wonder how i change that? -->
-        <!-- future me: so i just deployed it so i guess i dont have to worry about adding that now.  -->
-        <li><a href="/proxy/5000/">Home</a></li>
-        <!-- <li><a href="/proxy/5000/register">Register</a></li> -->
-        <li><a href="/proxy/5000/sign_up">Sign Up</a></li>
-        <li><a href="/proxy/5000/login">Login</a></li>
-        <li><a href="/proxy/5000/account">Account</a></li>
-        <li><a href="/proxy/5000/build_a_plate">Build a Plate</a></li>
-        <li><a href="/proxy/5000/previous_meals">Previous Meals</a></li>
-    </ul>
     <script src="/proxy/5000/static/js/app.js"></script>
 </body>
 </html>
