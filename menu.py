@@ -144,14 +144,6 @@ def fetch_and_store_menu():
 def today_menu():
     today = date.today()
     items = FoodItem.query.filter_by(date=today).all()
-
-    # auto-fetch if the table is empty for today
-    if not items:
-        count, err = fetch_and_store_menu()
-        if err and err != 'already_loaded':
-            return jsonify({'error': err}), 502
-        items = FoodItem.query.filter_by(date=today).all()
-
     return jsonify([{
         'id':          i.id,
         'name':        i.name,

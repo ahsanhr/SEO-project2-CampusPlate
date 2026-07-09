@@ -2,8 +2,12 @@ import pytest
 from datetime import date
 from unittest.mock import patch
 
-from app import app, db
+# patch the startup fetch before app module executes so tests don't hit the real API
+with patch('menu.fetch_and_store_menu', return_value=(0, 'already_loaded')):
+    from app import app, db
 from models import FoodItem
+
+
 
 
 @pytest.fixture
@@ -35,9 +39,7 @@ def _seed(n=2):
 def test_today_returns_seeded_items(client):
     with app.app_context():
         _seed()
-    # mock fetch so the auto-fetch guard never fires even if something is off
-    with patch('menu.fetch_and_store_menu', return_value=(0, 'already_loaded')):
-        res = client.get('/api/menu/today')
+    res = client.get('/api/menu/today')
     assert res.status_code == 200
     data = res.get_json()
     assert len(data) == 2
@@ -48,22 +50,12 @@ def test_today_returns_seeded_items(client):
     }
 
 
-def test_today_empty_when_no_data_and_api_fails(client):
+def test_today_empty_when_no_data(client):
     with app.app_context():
         _wipe_today()
-    with patch('menu.fetch_and_store_menu', return_value=(0, None)):
-        res = client.get('/api/menu/today')
+    res = client.get('/api/menu/today')
     assert res.status_code == 200
     assert res.get_json() == []
-
-
-def test_today_502_when_api_errors(client):
-    with app.app_context():
-        _wipe_today()
-    with patch('menu.fetch_and_store_menu', return_value=(0, 'api_error_503')):
-        res = client.get('/api/menu/today')
-    assert res.status_code == 502
-    assert 'error' in res.get_json()
 
 
 def test_refresh_wipes_and_reinserts(client):

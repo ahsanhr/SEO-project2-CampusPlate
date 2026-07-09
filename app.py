@@ -5,6 +5,8 @@ import os
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 from forms import RegistrationForm
 from extensions import db
@@ -81,8 +83,23 @@ def build_a_plate():
 def previous_meals():
     return render_template('previous_meals.html')
 
+def _daily_menu_fetch():
+    with app.app_context():
+        from menu import fetch_and_store_menu
+        fetch_and_store_menu()
+
+
 with app.app_context():
     db.create_all()
+    # populate today's menu on startup if not already loaded
+    from menu import fetch_and_store_menu
+    fetch_and_store_menu()
+
+# schedule a daily re-fetch at midnight so tomorrow's menu is ready on day change
+scheduler = BackgroundScheduler()
+scheduler.add_job(_daily_menu_fetch, 'cron', hour=0, minute=0)
+scheduler.start()
+atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=3000)
