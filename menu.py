@@ -99,6 +99,23 @@ def fetch_and_store_menu():
     date_str = today.isoformat()
     inserted = 0
 
+    # to fetch all uf locations instead of just the hardcoded list, replace
+    # the loop below with:
+    #
+    #   r = scraper.get(
+    #       f'{BASE_URL}/sites/{UF_SITE_ID}/locations-public',
+    #       params={'for_menus': 'true', 'locale': 'en'},
+    #       timeout=20,
+    #   )
+    #   if r.status_code != 200:
+    #       return 0, f'api_error_{r.status_code}'
+    #   data = r.json()
+    #   locations = [
+    #       loc
+    #       for building in data.get('buildings', [])
+    #       for loc in building.get('locations', [])
+    #   ] + data.get('standaloneLocations', [])
+
     for location in LOCATIONS:
         loc_id = location['id']
         loc_name = location['name']
