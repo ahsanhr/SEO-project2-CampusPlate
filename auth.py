@@ -78,3 +78,16 @@ def login(): # checks credentails and returns token if correct
         return jsonify({'error': 'invalid email or password'}), 401
 
     return jsonify({'token': make_token(match.id), 'user_id': match.id}), 200
+
+@auth_bp.route('/me', methods=['GET'])
+@login_required
+def get_current_user(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'user not found'}), 404
+    return jsonify({
+        'user_id': user.id,
+        'username': user.username,
+        'email': user.email
+    }), 200
+

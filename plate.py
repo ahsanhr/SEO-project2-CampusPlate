@@ -112,16 +112,12 @@ def format_meal(combo): # turn the list of food objects into json
 
 
 @plate_bp.route('/generate-plate', methods=['POST'])
-# @login_required
-# def generate_plate(user_id):
-def generate_plate():
-
+@login_required
+def generate_plate(user_id):
     body = request.get_json()
     meal_type = body.get('meal_type', 'lunch')
     max_items = body.get('max_items', 6)
     num_combos = body.get('num_combos', NUM_COMBOS)
-
-    user_id = body.get('user_id', 1)
     
     goal = Goal.query.filter_by(user_id=user_id).first()
     if not goal:
