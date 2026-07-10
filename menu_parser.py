@@ -13,7 +13,11 @@ def extract_nutrients(item):
     # use that as a fallback but make sure it's a real number (not '' or None)
     fallback_cal = _to_float(item.get('calories'))
 
+    # serving size is usually "1 cup", "4 oz" etc — lives on the item, not nutrients list
+    portion = item.get('portion') or item.get('serving_size') or item.get('portionSize') or None
+
     return {
+        'serving_size': portion,
         'calories':  _get(nutrients, 'calories') or fallback_cal,
         'protein_g': _get(nutrients, 'protein'),
         'carbs_g':   _get(nutrients, 'total carbohydrate'),
