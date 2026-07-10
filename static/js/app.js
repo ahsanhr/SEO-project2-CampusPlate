@@ -52,7 +52,9 @@ function renderMeals(meals){
 }
 const signUpButton = document.getElementById('sign-up-button');
 if(signUpButton) {
-    signUpButton.addEventListener('click', async() => {
+    signUpButton.addEventListener('click', async (e) => {
+        e.preventDefault()
+
         const createUser = {
             username: document.getElementById('username').value,
             email: document.getElementById('email').value,
@@ -82,7 +84,10 @@ if(signUpButton) {
 
 const loginButton = document.getElementById('login-button');
 if(loginButton){
-    loginButton.addEventListener('click', async() => {
+    loginButton.addEventListener('click', async (e) => {
+
+        e.preventDefault()
+
         const existingUser = {
             email: document.getElementById('login-email').value,
             password: document.getElementById('login-password').value,
@@ -113,12 +118,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const token = localStorage.getItem('jwt_token')
 
+        if (!token) throw new Error("No token found");
+
         const auth = await fetch('/api/auth/me', {
             method: 'GET',
             headers: {"Authorization" : `Bearer ${token}`}
         });
 
         const profile = await auth.json();
+
 
         if (!auth.ok) {
             throw new Error(profile.error);

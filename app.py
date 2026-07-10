@@ -2,6 +2,7 @@ from flask import Flask, render_template, url_for, flash, redirect, request, abo
 from flask_behind_proxy import FlaskBehindProxy
 from dotenv import load_dotenv
 import os
+from pathlib import Path
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -28,6 +29,7 @@ app.debug = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 db.init_app(app)
 
+#/proxy/5000
 @app.context_processor
 def inject_proxy():
     return dict(proxy='')
