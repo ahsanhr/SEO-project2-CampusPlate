@@ -57,6 +57,9 @@ def calc_score(item, targets): # how well does this item fit the macro targets
         return 0
 
     cal = item.calories or 0
+    if cal < 30:
+        return 0  # condiments/garnishes shouldn't be scored as meal items
+
     ratio = cal / targets['calories']
 
     # protein weighted 2x
@@ -85,12 +88,15 @@ def make_plate(anchor, remaining, targets, max_items): # build one meal starting
 
 
 def get_meals(items, targets, max_items, num_combos): # get multiple meal options each starting from a different high protein food
-    by_protein = sorted(items, key=lambda i: i.protein_g or 0, reverse=True)
+    # drop condiments and garnishes — anything under 30 cal isn't a real meal component
+    real_foods = [i for i in items if (i.calories or 0) >= 30]
+
+    by_protein = sorted(real_foods, key=lambda i: i.protein_g or 0, reverse=True)
     anchors = by_protein[:num_combos]
 
     combos = []
     for anchor in anchors:
-        rest = [i for i in items if i.id != anchor.id]
+        rest = [i for i in real_foods if i.id != anchor.id]
         combo = make_plate(anchor, rest, targets, max_items)
         combos.append(combo)
 
